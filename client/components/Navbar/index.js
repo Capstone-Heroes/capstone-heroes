@@ -45,8 +45,8 @@ const Navbar = ({ toggle }) => {
     <>
       <IconContext.Provider value={{ color: '#fff' }}>
         <Nav scrollNav={scrollNav}>
-          <NavbarContainer>
-            <NavWrap>
+          <NavWrap>
+            <NavbarContainer>
               <NavLogo to="/" onClick={toggleHome}>
                 <GrLocation />
                 Proximity
@@ -90,8 +90,8 @@ const Navbar = ({ toggle }) => {
                   </NavBtnLink>
                 </NavBtn>
               </NavItem>
-            </NavWrap>
-          </NavbarContainer>
+            </NavbarContainer>
+          </NavWrap>
         </Nav>
       </IconContext.Provider>
     </>

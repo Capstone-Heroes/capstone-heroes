@@ -1,54 +1,56 @@
 const express = require('express');
 const userRouter = express.Router();
 const bcrypt = require('bcrypt');
+const asyncHandler = require('express-async-handler');
 const { createUser, updateUser } = require('../db/neo4j/user');
 const { createSession } = require('../db/neo4j/session');
-import asyncHandler from 'express-async-handler';
-
 const A_WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
 
 // POST /api/user
 // Creates new user in db
-userRouter.post('/signup', async (req, res) => {
-  const { username, password } = req.body;
-  const hashedPW = await bcrypt.hash(password, 10);
+userRouter.post(
+  '/signup',
+  asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
+    const hashedPW = await bcrypt.hash(password, 10);
 
-  const mailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    const mailFormat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-  try {
-    // validate email address before createUser
-    if (!username.match(mailFormat)) {
-      res.status(400).send({
-        unError: 'Not a valid email address.',
-      });
-    } else {
-      const newUser = await createUser(username, hashedPW);
-      if (newUser) {
-        const newSession = await createSession(username);
-        res.cookie('sessionId', newSession.sessionId, {
-          maxAge: A_WEEK_IN_SECONDS,
-          path: '/',
+    try {
+      // validate email address before createUser
+      if (!username.match(mailFormat)) {
+        res.status(400).send({
+          unError: 'Not a valid email address.',
         });
-        // const createdUser = await newUser.save();
-        res.status(201).send(newUser);
       } else {
-        res.sendStatus(400);
+        const newUser = await createUser(username, hashedPW);
+        if (newUser) {
+          const newSession = await createSession(username);
+          res.cookie('sessionId', newSession.sessionId, {
+            maxAge: A_WEEK_IN_SECONDS,
+            path: '/',
+          });
+          // const createdUser = await newUser.save();
+          res.status(201).send(newUser);
+        } else {
+          res.sendStatus(400);
+        }
+      }
+    } catch (e) {
+      //this checks the type of error coming from sequelize
+      if (e.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
+        res.status(400).send({
+          unError: 'This username is already taken.',
+        });
+      } else {
+        res.status(500).send({
+          unError: null,
+          pwError: 'Something went horribly wrong.',
+        });
       }
     }
-  } catch (e) {
-    //this checks the type of error coming from sequelize
-    if (e.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
-      res.status(400).send({
-        unError: 'This username is already taken.',
-      });
-    } else {
-      res.status(500).send({
-        unError: null,
-        pwError: 'Something went horribly wrong.',
-      });
-    }
-  }
-});
+  })
+);
 
 // PUT /api/user
 // use for adding NEW properties to the user node

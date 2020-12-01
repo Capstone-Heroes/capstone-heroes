@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { signIn } from '../../actions/userActions';
 import { GrLocation } from 'react-icons/gr';
-import MessageBox from '../components/MessageBox';
+import MessageBox from '../MessageBox';
 import {
   SignInContainer,
   FormWrap,

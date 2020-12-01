@@ -1,10 +1,10 @@
 const express = require('express');
 const authRouter = express.Router();
 const bcrypt = require('bcrypt');
+const asyncHandler = require('express-async-handler');
 const { getUser } = require('../db/neo4j/user');
 const { createSession } = require('../db/neo4j/session');
 const A_WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
-import asyncHandler from 'express-async-handler';
 
 // GET /api/auth/whoami
 authRouter.get('/whoami', (req, res, next) => {
