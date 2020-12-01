@@ -3,12 +3,13 @@ const userRouter = express.Router();
 const bcrypt = require('bcrypt');
 const { createUser, updateUser } = require('../db/neo4j/user');
 const { createSession } = require('../db/neo4j/session');
+import asyncHandler from 'express-async-handler';
 
 const A_WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
 
 // POST /api/user
 // Creates new user in db
-userRouter.post('/', async (req, res) => {
+userRouter.post('/signup', async (req, res) => {
   const { username, password } = req.body;
   const hashedPW = await bcrypt.hash(password, 10);
 
@@ -18,7 +19,7 @@ userRouter.post('/', async (req, res) => {
     // validate email address before createUser
     if (!username.match(mailFormat)) {
       res.status(400).send({
-        unError: 'Not a valid email address.'
+        unError: 'Not a valid email address.',
       });
     } else {
       const newUser = await createUser(username, hashedPW);
@@ -28,7 +29,7 @@ userRouter.post('/', async (req, res) => {
           maxAge: A_WEEK_IN_SECONDS,
           path: '/',
         });
-
+        // const createdUser = await newUser.save();
         res.status(201).send(newUser);
       } else {
         res.sendStatus(400);
@@ -36,18 +37,18 @@ userRouter.post('/', async (req, res) => {
     }
   } catch (e) {
     //this checks the type of error coming from sequelize
-    if(e.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
+    if (e.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
       res.status(400).send({
-        unError: 'This username is already taken.'
-      })
+        unError: 'This username is already taken.',
+      });
     } else {
       res.status(500).send({
         unError: null,
-        pwError: 'Something went horribly wrong.'
-      })
+        pwError: 'Something went horribly wrong.',
+      });
     }
   }
-})
+});
 
 // PUT /api/user
 // use for adding NEW properties to the user node
@@ -56,10 +57,9 @@ userRouter.put('/', async (req, res, next) => {
     const { username } = req.user;
     const updatedUser = await updateUser(username, req.body);
     res.status(200).send(updatedUser);
-  }
-  catch(err) {
+  } catch (err) {
     next(err);
   }
-})
+});
 
 module.exports = userRouter;

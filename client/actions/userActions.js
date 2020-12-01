@@ -12,7 +12,7 @@ import {
 export const signUp = (username, password) => async (dispatch) => {
   dispatch({ type: USER_SIGNUP_REQUEST, payload: { username, password } });
   try {
-    const { data } = await Axios.post('/api/users/signup', {
+    const { data } = await Axios.post('/api/user/signup', {
       username,
       password,
     });
@@ -33,7 +33,7 @@ export const signUp = (username, password) => async (dispatch) => {
 export const signIn = (username, password) => async (dispatch) => {
   dispatch({ type: USER_SIGNIN_REQUEST, payload: { username, password } });
   try {
-    const { data } = await Axios.post('/api/users/signin', {
+    const { data } = await Axios.post('/api/auth/signin', {
       username,
       password,
     });
